@@ -34,9 +34,9 @@
 
 ## 三种自编码器之间的区别
 
-AutoEncoder 提出来主要是为了解决 **数据压缩与还原**的问题, 我们输入一个 x, 通过encoder得到隐变量 z, 再将 z 经过 decoder 的处理还原出 x'. 于是很自然的, 优化目标就应该是希望 \textbf{dist}(x,x') 尽量小.
+AutoEncoder 提出来主要是为了解决 **数据压缩与还原**的问题, 我们输入一个 x, 通过encoder得到隐变量 z, 再将 z 经过 decoder 的处理还原出 $x'$. 于是很自然的, 优化目标就应该是希望 $\textbf{dist}(x,x')$ 尽量小.
 
-Variational AutoEncoder 提出来是为了做 **生成式的任务**, 希望模型可以通过学习, 获得如何生成和输入的 x 很像但是不完全一样的x', 比如我们希望生成动漫头像, 我们当然是希望生成的头像与训练的数据是风格相似但是不完全一样的. 为了做到这一点, 我们采取变分推断的方式, 不再是通过encoder获得一个隐变量, 而是生成这个隐变量服从的分布的均值与方差(实际上这里我们假设隐变量服从高斯分布, 那么均值和方差实际上就唯一刻画了这个分布的所有信息). 再经过decoder的处理得到 x', 此时的优化目标除了让 \textbf{dist}(x,x') 尽可能小以外, 还应该满足对隐变量获得的分布的约束 \textbf{KL}(P_z, prior_z) , 也就是我们希望我们的z服从的分布与我们给定的先验分布(这里是高斯分布)也尽量接近.
+Variational AutoEncoder 提出来是为了做 **生成式的任务**, 希望模型可以通过学习, 获得如何生成和输入的 x 很像但是不完全一样的 $x'$, 比如我们希望生成动漫头像, 我们当然是希望生成的头像与训练的数据是风格相似但是不完全一样的. 为了做到这一点, 我们采取变分推断的方式, 不再是通过encoder获得一个隐变量, 而是生成这个隐变量服从的分布的均值与方差(实际上这里我们假设隐变量服从高斯分布, 那么均值和方差实际上就唯一刻画了这个分布的所有信息). 再经过decoder的处理得到 x', 此时的优化目标除了让 $\textbf{dist}(x,x')$ 尽可能小以外, 还应该满足对隐变量获得的分布的约束 $\textbf{KL}(P_z, prior_z)$ , 也就是我们希望我们的z服从的分布与我们给定的先验分布(这里是高斯分布)也尽量接近.
 
 Conditional Variational AutoEncoder 则是在VAE的基础上, 加入了对数据类别信息的指定, 从而我们可以做到指定模型生成具体某个类别数据.
 
@@ -70,11 +70,11 @@ Conditional Variational AutoEncoder 则是在VAE的基础上, 加入了对数据
   
   ![](https://blog.keras.io/img/ae/sparse_ae_32.png)
 
-- 对于VAE, 你可以从\mathcal{N}(0,1)中采样一些点作为隐变量, 生成一些图片查看结果
+- 对于VAE, 你可以从$\mathcal{N}(0,1)$ 中采样一些点作为隐变量, 生成一些图片查看结果
   
   <img src="https://img2020.cnblogs.com/blog/2226924/202104/2226924-20210423185609828-1496768811.jpg" title="" alt="" width="299">
 
-- 对于CVAE, 你可以指派具体的标签, 从\mathcal{N}(0,1) 中采样, 生成一些图片查看结果 ![](https://pic1.imgdb.cn/item/636da3bb16f2c2beb14394d8.png)
+- 对于CVAE, 你可以指派具体的标签, 从 $\mathcal{N}(0,1)$ 中采样, 生成一些图片查看结果 ![](https://pic1.imgdb.cn/item/636da3bb16f2c2beb14394d8.png)
 
 > 以上的展示方式并不唯一, 你可以设计你认为适合的展示方式来体现出不同自编码器的效果.
 
@@ -102,19 +102,19 @@ class Encoder(nn.Module):
 
 ```python
 class Decoder(nn.Module):
-    def __init__(self, x_dim, hidden_size, latent_size, decode_type="AE", **kwargs) -> None:
+    def __init__(self, x_dim, hidden_size, latent_size, decoder_type="AE", **kwargs) -> None:
         super(Decoder, self).__init__()
-        if decode_type == "AE":
+        if decoder_type == "AE":
             self.decoder = nn.Sequential(nn.Linear(latent_size, hidden_size), nn.ReLU(), nn.Linear(hidden_size, x_dim),)
-        elif decode_type == "VAE":
+        elif decoder_type == "VAE":
             self.decoder = ...  # 实现VAE的decoder (5/100)
-        elif decode_type == "CVAE":
+        elif decoder_type == "CVAE":
             self.decoder = ...  # 实现CVAE的decoder (5/100)
         else:
             raise NotImplementedError
 
     def forward(self, zs, **otherinputs):
-        # 实现decoder的decode部分, 注意对不同的decode_type的处理与对**otherinputs的解析 (10/100)
+        # 实现decoder的decode部分, 注意对不同的decoder_type的处理与对**otherinputs的解析 (10/100)
         return ...
 ```
 
