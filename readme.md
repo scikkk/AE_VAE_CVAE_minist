@@ -9,7 +9,7 @@
 
 报告中重建的数字都以下图作为输入：
 
-![epoch_raw](.\results\CVAE\epoch_raw.png)
+<img src=".\results\CVAE\epoch_raw.png" alt="epoch_raw" style="zoom:80%;" />
 
 
 
@@ -41,7 +41,7 @@ mse = torch.nn.functional.mse_loss(x, x_, reduction='sum')
 
 为了衡量重建前后数字的差异，选取 `mse_loss`，但是发现对于 `VAE` 效果较差，修改 `ruduction` 方式为 `sum`，即不取平均，发现有明显改善。二者对比图如下，均使用默认参数，例图为训练5个 `epoch` 后的结果：
 
-![loss](.\image\loss.png)
+<img src=".\image\loss.png" alt="loss" style="zoom:80%;" />
 
 ### 3.2 CVAE网络结构调整
 
@@ -64,7 +64,7 @@ mse = torch.nn.functional.mse_loss(x, x_, reduction='sum')
 
 使用默认的网络结构训练，但是发现对于 `CVAE` 效果较差，对编码器中的 `self.mu` 网络增加激活函数 `ReLU`，，发现效果有明显改善。二者对比图如下，均使用默认参数，例图为训练5个 `epoch` 后的重建结果与指定标签的结果：
 
-![CVAE_ReLU](.\image\CVAE_ReLU.png)
+<img src=".\image\CVAE_ReLU.png" alt="CVAE_ReLU" style="zoom:80%;" />
 
 ## 4 超参数设置
 
@@ -74,35 +74,35 @@ mse = torch.nn.functional.mse_loss(x, x_, reduction='sum')
 
 先调节 `hidden_size`，结果对比图如下：
 
-![AE_hiddensize](.\image\AE_hiddensize.png)
+<img src=".\image\AE_hiddensize.png" alt="AE_hiddensize" style="zoom:80%;" />
 
 发现 `hidden_size=256` 较好，再调节训练率`lr`，发现选择 `lr=0.001` 较好，对比图如下：
 
-![AE_lr](.\image\AE_lr.png)
+<img src=".\image\AE_lr.png" alt="AE_lr" style="zoom:80%;" />
 
 ### 4.2 VAE
 
 先调节粗调 `hidden_size`，对比图如下：
 
-![VAE_hiddensize_1](.\image\VAE_hiddensize_1.png)
+<img src=".\image\VAE_hiddensize_1.png" alt="VAE_hiddensize_1" style="zoom:80%;" />
 
 发现取 `100~200` 较好，再细调 `hidden_size`：
 
-![VAE_hiddensize_2](.\image\VAE_hiddensize_2.png)
+<img src=".\image\VAE_hiddensize_2.png" alt="VAE_hiddensize_2" style="zoom:80%;" />
 
 发现 `hidden_size=120` 较好，再调节训练率`lr`，发现选择 `lr=0.01` 较好，对比图如下：
 
-![VAE_lr](.\image\VAE_lr.png)
+<img src=".\image\VAE_lr.png" alt="VAE_lr" style="zoom:80%;" />
 
 ### 4.3 CVAE
 
 先调节`hidden_size`，对比图如下：
 
-![CVAE_hiddensize](.\image\CVAE_hiddensize.png)
+<img src=".\image\CVAE_hiddensize.png" alt="CVAE_hiddensize" style="zoom:80%;" />
 
 发现 `hidden_size=200` 较好，再调节训练率`lr`，发现选择 `lr=0.01` 较好，对比图如下：
 
-![CVAE_lr](.\image\CVAE_lr.png)
+<img src=".\image\CVAE_lr.png" alt="CVAE_lr" style="zoom:80%;" />
 
 
 
@@ -118,7 +118,7 @@ mse = torch.nn.functional.mse_loss(x, x_, reduction='sum')
 
 #### 5.1.1 Train Loss
 
-![AE_256_001](.\results\AE\AE_256_001.png)
+<img src=".\results\AE\AE_256_001.png" alt="AE_256_001" style="zoom:80%;" />
 
 #### 5.1.2 图像重构对比
 
@@ -136,7 +136,7 @@ mse = torch.nn.functional.mse_loss(x, x_, reduction='sum')
 
 #### 5.2.1 Train Loss
 
-![VAE_120_01](.\results\VAE\VAE_120_01.png)
+<img src=".\results\VAE\VAE_120_01.png" alt="VAE_120_01" style="zoom:80%;" />
 
 #### 5.2.2 图像重构对比
 
@@ -175,7 +175,7 @@ mse = torch.nn.functional.mse_loss(x, x_, reduction='sum')
 
 #### 5.3.1 Train Loss
 
-![CVAE_200_01](.\results\CVAE\CVAE_200_01.png)
+<img src=".\results\CVAE\CVAE_200_01.png" alt="CVAE_200_01" style="zoom:80%;" />
 
 #### 5.3.2 图像重构对比
 
