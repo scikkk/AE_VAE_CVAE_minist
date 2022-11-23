@@ -1,173 +1,202 @@
-# 作业: 自编码器
+# 实验报告
 
-> Deadline: 12-02 23:59:59 
-> 
-> 提交网址: [深度学习平台作业提交 (nju.edu.cn)](https://table.nju.edu.cn/dtable/forms/0572926f-1534-4b21-aff7-833435d4a885/)
+王科 201300008
 
-本次作业我们要实现自编码器, 包括AutoEncoder, Variational AutoEncoder, Conditional Variational AutoEncoder.
 
-前置知识:
+## 1 实验内容
 
-- Python语言基础, 这样有助于你写出更加高效的代码
-- Pytorch 基础, 会写基础的模型与训练代码
-- 理论基础, 掌握最大似然估计, 贝叶斯推断, ELBO 等理论推导
+实现三种自编码器 包括 `AutoEncoder`, `Variational AutoEncoder`, `Conditional Variational AutoEncoder` .
 
-当然, 如果这些你都有些欠缺, 也不要担心, 我们可以参考网络上很好的教程, 下面是几个非常不错的参考资料:
+报告中重建的数字都以下图作为输入：
 
-- [CVAE, pyro的文档讲解(英文), 有代码](https://pyro.ai/examples/cvae.html)
-- [CVAE, TensorFlow的文档(中文), 有代码](https://www.tensorflow.org/tutorials/generative/cvae?hl=zh-cn)
-- [VAE, 原理讲解(英文), 可能需要科学上网](https://towardsdatascience.com/understanding-variational-autoencoders-vaes-f70510919f73)
+![epoch_raw](.\results\CVAE\epoch_raw.png)
 
-注意! 请不要分享你的代码给同学或是上传到网络上, 这样可能会让其他同学失去学习的乐趣, 也有害于学术诚信. 
-本次作业难度不高, 愿意花一点时间的同学都可以在几天的时间里完成并且获得进步! Enjoy it!
-遇到问题的操作顺序:
 
-- 自己动手debug, 思考为什么会有问题
-- 搜索报错的问题, 或是相关的内容
-- 与同学们讨论, 但是不能抄袭
-- 群里@助教, 不过在条件允许的情况下, 请先独立尝试.
 
-你的作业应该包括下面的内容:
+## 2 实验原理
 
-- 能够运行的代码, 并且具有良好的注释, 方便助教给分
-- 能够体现你工作量的报告, 包括 简单的说明任务, 代码的超参数设置, 不同的自编码器之间的对比(包括理论上与实验上), 自己的思考
+### 2.1 AE
 
-## 三种自编码器之间的区别
+`AutoEncoder` 提出来主要是为了解决 **数据压缩与还原**的问题, 我们输入一个 `x`, 通过 `encoder` 得到隐变量 `z`, 再将 ` z`  经过 `decoder` 的处理还原出 `x'`. 于是很自然的, 优化目标就应该是希望 $\textbf{dist}(x,x')$ 尽量小.
 
-AutoEncoder 提出来主要是为了解决 **数据压缩与还原**的问题, 我们输入一个 x, 通过encoder得到隐变量 z, 再将 z 经过 decoder 的处理还原出 $x'$. 于是很自然的, 优化目标就应该是希望 $\textbf{dist}(x,x')$ 尽量小.
+### 2.2 VAE
 
-Variational AutoEncoder 提出来是为了做 **生成式的任务**, 希望模型可以通过学习, 获得如何生成和输入的 x 很像但是不完全一样的 $x'$, 比如我们希望生成动漫头像, 我们当然是希望生成的头像与训练的数据是风格相似但是不完全一样的. 为了做到这一点, 我们采取变分推断的方式, 不再是通过encoder获得一个隐变量, 而是生成这个隐变量服从的分布的均值与方差(实际上这里我们假设隐变量服从高斯分布, 那么均值和方差实际上就唯一刻画了这个分布的所有信息). 再经过decoder的处理得到 x', 此时的优化目标除了让 $\textbf{dist}(x,x')$ 尽可能小以外, 还应该满足对隐变量获得的分布的约束 $\textbf{KL}(P_z, prior_z)$ , 也就是我们希望我们的z服从的分布与我们给定的先验分布(这里是高斯分布)也尽量接近.
+`Variational AutoEncoder` 提出来是为了做 **生成式的任务**, 希望模型可以通过学习, 获得如何生成和输入的 `x` 很像但是不完全一样的 `x'`, 比如我们希望生成动漫头像, 我们当然是希望生成的头像与训练的数据是风格相似但是不完全一样的. 为了做到这一点, 我们采取变分推断的方式, 不再是通过 `encoder` 获得一个隐变量, 而是生成这个隐变量服从的分布的均值与方差(实际上这里我们假设隐变量服从高斯分布, 那么均值和方差实际上就唯一刻画了这个分布的所有信息). 再经过 `decoder` 的处理得到 `x'`, 此时的优化目标除了让 $\textbf{dist}(x,x')$ 尽可能小以外, 还应该满足对隐变量获得的分布的约束 $\textbf{KL}(P_z, prior_z)$ , 也就是我们希望我们的 `z` 服从的分布与我们给定的先验分布(这里是高斯分布)也尽量接近.
 
-Conditional Variational AutoEncoder 则是在VAE的基础上, 加入了对数据类别信息的指定, 从而我们可以做到指定模型生成具体某个类别数据.
+### 2.3 CVAE
 
-## 作业说明
+`Conditional Variational AutoEncoder` 则是在 `VAE` 的基础上, 加入了对数据类别信息的指定, 从而我们可以做到指定模型生成具体某个类别数据。
 
-本次作业我们的代码结构是这样的:
+具体而言 `VAE` 的输入只是 `x`，而 `CAVE` 的输入是 `(x,y)` .
 
-```
-- .
- |
- |- data.py # 对数据集的处理, 包括得到dataloader的功能
- |- main.py # 主文件, 包括对train过程的实现与损失函数的实现 (分数 45/100)
- |- model.py # 模型实现, 包括对AE, VAE, CVAE的实现 (分数 55/100)
-```
 
-你需要补全或是重构我们提供的这份代码文件, 按照我们的注释补全相应内容或是自己重新另起炉灶都是可以的, 但是请在对应的地方写清注释, 方便我们给分.
 
-举个例子, 在`main.py`中:
+## 3  实验细节
+
+### 3.1 损失函数选取
 
 ```python
-    def kl_div(self, p, q):
-        # 实现kl散度的损失 (5/100)
-        return
+mse = torch.nn.functional.mse_loss(x, x_, reduction='sum')
 ```
 
-你需要做的是在这个提示的地方, 补全相应的功能, 并且能让你的代码最终运行起来. 我们提供的框架只是一种可能的风格, 请放心随意修改.
+为了衡量重建前后数字的差异，选取 `mse_loss`，但是发现对于 `VAE` 效果较差，修改 `ruduction` 方式为 `sum`，即不取平均，发现有明显改善。二者对比图如下，均使用默认参数，例图为训练5个 `epoch` 后的结果：
 
-在报告中, 你应该展示出三种自编码器在MNIST数据集上的生成结果:
+![loss](.\image\loss.png)
 
-- 对于AE, 你可以考虑展示出压缩前后图片的不同
-  
-  ![](https://blog.keras.io/img/ae/sparse_ae_32.png)
+### 3.2 CVAE网络结构调整
 
-- 对于VAE, 你可以从$\mathcal{N}(0,1)$ 中采样一些点作为隐变量, 生成一些图片查看结果
-  
-  <img src="https://img2020.cnblogs.com/blog/2226924/202104/2226924-20210423185609828-1496768811.jpg" title="" alt="" width="299">
-
-- 对于CVAE, 你可以指派具体的标签, 从 $\mathcal{N}(0,1)$ 中采样, 生成一些图片查看结果 ![](https://pic1.imgdb.cn/item/636da3bb16f2c2beb14394d8.png)
-
-> 以上的展示方式并不唯一, 你可以设计你认为适合的展示方式来体现出不同自编码器的效果.
-
-## 可能的完成路线
-
-### Step1 (`model.py`)
-
-首先我们需要实现 `Encoder` 和 `Decoder` 这两个类,
-
-```python
-class Encoder(nn.Module):
-    def __init__(self, x_dim, hidden_size, latent_size, is_dist=False, **kwargs) -> None:
-        super(Encoder, self).__init__()
-        self.mu = nn.Sequential(nn.Linear(x_dim, hidden_size), nn.ReLU(), nn.Linear(hidden_size, latent_size),)
-        if is_dist:  # 如果需要encoder返回的是均值与标准差, 那么我们需要额外引入一次计算标准差的layer
-            self.sigma = nn.Sequential(nn.Linear(x_dim, hidden_size), nn.ReLU(), nn.Linear(hidden_size, latent_size),)
-
-    def forward(self, xs):
-        # 实现编码器的forward过程 (5/100), 注意 is_dist 的不同取值意味着我们需要不同输出的encoder
-        ...
-        return
+```markdown
+# Encoder 
+    - self.mu
+        nn.Linear(x_dim+label_size, hidden_size)
+        nn.ReLU()
+        nn.Linear(hidden_size, latent_size)
+        nn.ReLU()
+    - self.sigma
+        nn.Linear(x_dim+label_size, hidden_size)
+        nn.ReLU()
+        nn.Linear(hidden_size, latent_size)
+# Decoder
+    nn.Linear(latent_size+label_size, hidden_size)
+    nn.ReLU()
+    nn.Linear(hidden_size, x_dim)
 ```
 
-这里, 我们为AE,VAE,CVAE留了一个接口, 就是借助`is_dist`这个参数来判断我们的`encoder`是输出一个隐变量(AE)呢, 还是输出隐变量服从的分布的均值与方差(VAE,CVAE)呢.
+使用默认的网络结构训练，但是发现对于 `CVAE` 效果较差，对编码器中的 `self.mu` 网络增加激活函数 `ReLU`，，发现效果有明显改善。二者对比图如下，均使用默认参数，例图为训练5个 `epoch` 后的重建结果与指定标签的结果：
 
-```python
-class Decoder(nn.Module):
-    def __init__(self, x_dim, hidden_size, latent_size, decoder_type="AE", **kwargs) -> None:
-        super(Decoder, self).__init__()
-        if decoder_type == "AE":
-            self.decoder = nn.Sequential(nn.Linear(latent_size, hidden_size), nn.ReLU(), nn.Linear(hidden_size, x_dim),)
-        elif decoder_type == "VAE":
-            self.decoder = ...  # 实现VAE的decoder (5/100)
-        elif decoder_type == "CVAE":
-            self.decoder = ...  # 实现CVAE的decoder (5/100)
-        else:
-            raise NotImplementedError
+![CVAE_ReLU](.\image\CVAE_ReLU.png)
 
-    def forward(self, zs, **otherinputs):
-        # 实现decoder的decode部分, 注意对不同的decoder_type的处理与对**otherinputs的解析 (10/100)
-        return ...
+## 4 超参数设置
+
+调节参数时为节约时间，且考虑到本任务比较简单，只训练5个 `epoch` ，然后对比所得结果。
+
+### 4.1 AE
+
+先调节 `hidden_size`，结果对比图如下：
+
+![AE_hiddensize](.\image\AE_hiddensize.png)
+
+发现 `hidden_size=256` 较好，再调节训练率`lr`，发现选择 `lr=0.001` 较好，对比图如下：
+
+![AE_lr](.\image\AE_lr.png)
+
+### 4.2 VAE
+
+先调节粗调 `hidden_size`，对比图如下：
+
+![VAE_hiddensize_1](.\image\VAE_hiddensize_1.png)
+
+发现取 `100~200` 较好，再细调 `hidden_size`：
+
+![VAE_hiddensize_2](.\image\VAE_hiddensize_2.png)
+
+发现 `hidden_size=120` 较好，再调节训练率`lr`，发现选择 `lr=0.01` 较好，对比图如下：
+
+![VAE_lr](.\image\VAE_lr.png)
+
+### 4.3 CVAE
+
+先调节`hidden_size`，对比图如下：
+
+![CVAE_hiddensize](.\image\CVAE_hiddensize.png)
+
+发现 `hidden_size=200` 较好，再调节训练率`lr`，发现选择 `lr=0.01` 较好，对比图如下：
+
+![CVAE_lr](.\image\CVAE_lr.png)
+
+
+
+## 5 实验结果
+
+### 5.1 AE
+
+优化器选择`Adam`，其它参数如下：
+
+```shell
+--latent_size=10, --hidden_size=256, --batch_size=100, --lr=0.001
 ```
 
-Decoder的实现稍微复杂一些, 考虑到不同的自编码器可能需要不同的输入, 我们这里统一借助`**otherinputs`来处理.
-对于AE的情况, 那么我们显然只需要`zs`作为输入即可, 对于VAE,CVAE的情况, 我们可能需要隐变量服从分布的均值与方差(对于CVAE, 还需要类别的指示变量)
+#### 5.1.1 Train Loss
 
-在实现遇到迷茫的时候, 不妨考虑具体的自编码器类需要什么样的encoder, decoder.
+![AE_256_001](.\results\AE\AE_256_001.png)
 
-```python
-class AutoEncoder(nn.Module):
-    def __init__(self, encoder, decoder, **kwargs) -> None:
-        super(AutoEncoder, self).__init__()
-        self.encoder = encoder
-        self.decoder = decoder
+#### 5.1.2 图像重构对比
 
-    def forward(self, x):
-        z = self.encoder(x)
-        # 实现AE的forward过程(5/100)
-        ...
-        return
+左图为输入，右图为输出
 
+<img src=".\results\AE\epoch_raw.png" alt="epoch_raw" style="zoom:80%;" />	<img src=".\results\AE\epoch_31.png" alt="epoch_reconstruction" style="zoom:80%;" />
 
-class VariationalAutoEncoder(nn.Module):
-    def __init__(self, encoder, decoder, **kwargs) -> None:
-        super(VariationalAutoEncoder, self).__init__()
-        self.encoder = encoder
-        self.decoder = decoder
+### 5.2 VAE
 
-    def forward(self, xs):
-        mu, sigma = self.encoder(xs)
-        # 实现VAE的forward过程(10/100)
-        ...
-        return
+优化器选择`Adam`，其它参数如下：
 
-
-class ConditionalVariationalAutoEncoder(nn.Module):
-    def __init__(self, encoder, decoder, **kwargs) -> None:
-        super(ConditionalVariationalAutoEncoder, self).__init__()
-        self.encoder = encoder
-        self.decoder = decoder
-
-    def forward(self, xs, ys):
-        mu, sigma = self.encoder(xs, ys)
-        # 实现 CVAE的forward过程(15/100)
-        ...
-        return
+```shell
+--latent_size=10, --hidden_size=120, --batch_size=100, --lr=0.01
 ```
 
-当我们将所有的模型都实现好了, 你可以写一些简单的测试用例来验证输入输出的维度是否对齐, torch的debug不过如此... 一杯茶一根烟, 一行代码debug一天...
+#### 5.2.1 Train Loss
 
-### Step2 (`main.py`)
+![VAE_120_01](.\results\VAE\VAE_120_01.png)
 
-模型实现好了, 那么我们来训练吧!
-这里就简单了, 只需要实现训练的loss, 注意一下不同自编码器可能需要不同的loss就可以了, 当然你也可以把超参数诸如各个不同loss部分之间的比例也当作args传进去...
+#### 5.2.2 图像重构对比
 
-至于训练过程, 不过就是optimizer.step()搞一搞就行了 :)
+左图为输入，右图为输出：
+
+<img src=".\results\VAE\epoch_raw.png" alt="epoch_raw" style="zoom:80%;" />	<img src=".\results\VAE\epoch_31.png" alt="epoch_31" style="zoom:80%;" />
+
+#### 5.2.3 随机采样
+
+从$\mathcal{N}(0,1)$ 中采样一些点作为隐变量, 生成一些图片查看结果，下图是两次运行的结果：
+
+<img src=".\results\VAE\gen_epoch_12.png" alt="gen_epoch_12" style="zoom:80%;" />	<img src=".\results\VAE\gen_epoch_31.png" alt="gen_epoch_31" style="zoom:80%;" />
+
+####  5.2.4 均匀采样
+
+将 `latent_size` 改为2，从以原点为中心，15为边长的正方形内均匀采样，作为Decoder的输入。
+
+```shell
+--latent_size=2, --hidden_size=120, --batch_size=100, --lr=0.01
+```
+先看缩略图，发现不同数字大概呈放射状分布：
+
+<img src=".\results\VAE_grid\grid_0.png" alt="grid_0" style="zoom: 10%;" />		<img src=".\results\VAE_grid\grid_1.png" alt="grid_1" style="zoom:10%;" />		<img src=".\results\VAE_grid\grid_2.png" alt="grid_2" style="zoom:10%;" /> 
+
+放大图片观察细节，发现每个扇形内部的数字比较清晰，但是若采样采到扇形的边界交汇处，会导致生成不规范的数字：
+
+<img src=".\results\VAE_grid\grid_3.png" alt="grid_3" style="zoom:60%;" />
+
+### 5.3 CVAE
+
+优化器选择`Adam`，其它参数如下：
+
+```shell
+--latent_size=10, --hidden_size=200, --batch_size=100, --lr=0.01
+```
+
+#### 5.3.1 Train Loss
+
+![CVAE_200_01](.\results\CVAE\CVAE_200_01.png)
+
+#### 5.3.2 图像重构对比
+
+左图为输入，右图为输出：
+
+<img src=".\results\CVAE\epoch_raw.png" alt="epoch_raw" style="zoom:80%;" />	<img src=".\results\CVAE\epoch_31.png" alt="epoch_31" style="zoom:80%;" />
+
+#### 5.3.2 指派标签效果
+
+指派具体的标签, 从 $\mathcal{N}(0,1)$ 中采样, 生成一些图片查看结果，下图是两次运行的结果：
+
+<img src=".\results\CVAE\gen_epoch_0.png" alt="gen_epoch_0" style="zoom:80%;" />	<img src=".\results\CVAE\gen_epoch_28.png" alt="gen_epoch_28" style="zoom:80%;" />
+
+
+
+## 6 总结与思考
+
+1. 观察 `AE`, `VAE`, `CVAE` 的结果，发现 `4` 和 `5` 的学习效果最差，其中习得的 `4` 右边几乎不会出头，而习得的 `5` 和 `S` 较为相似，但是观察数据集，发现数据集中确实有这种特征。要想取得更好的训练效果，只调整参数可能较为困难，需要从数据集的采样方式入手。
+
+   <img src=".\image\4.png" alt="4" style="zoom: 30%;" /> <img src=".\image\5.png" alt="5" style="zoom: 30%;" />
+
+2. `VAE` 采样生成的数字（下图左）会含有介于两种数字直接的情况，因为随机采样难免会采样到两种数字的过渡区域；而 `CVAE` 采样生成的数字（下图右）不会出现这种情况。应该是增加的标记维度使不同的数字被分隔开，从而容易取得较好的效果：
+
+   <img src=".\results\VAE\gen_epoch_31.png" alt="gen_epoch_31" style="zoom:80%;" /><img src=".\results\CVAE\gen_epoch_28.png" alt="gen_epoch_28" style="zoom:80%;" />
